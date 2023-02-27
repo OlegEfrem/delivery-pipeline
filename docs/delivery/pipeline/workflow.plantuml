@@ -1,0 +1,32 @@
+@startuml
+skinparam sequenceMessageAlign center
+
+participant nexus order 100
+
+autonumber
+ github_issue -> : create github issue with work details
+ main_branch -> feature_branch: Create **feature branch** \n from **main** branch
+ feature_branch -> PR: Create Pull Request (PR) \n into **develop branch**
+ PR -> quick_feedback: triggers Quick Feedback
+ alt on success
+  PR -> develop_branch: merge feature_branch to develop
+ else on failure
+  PR -> feature_branch: add commits to fix feature_branch
+ end
+ develop_branch -> full_feedback: triggers Full Feedback
+ alt on success
+  full_feedback -> develop_branch: **push** develop to main
+  develop_branch -> main_branch: **push** develop to main
+  full_feedback -> nexus: push release candidate to nexus \n (snapshot)
+ else on failure
+  develop_branch -> main_branch: **revert** develop to main
+ end
+ create_release -> create_release: Create Release Action
+ alt on releasable commits
+  create_release -> GitHub: create GitHub release
+  create_release -> nexus: push release to nexus
+ else on non releasable commits
+  create_release -> create_release: do nothing
+ end
+
+@enduml
